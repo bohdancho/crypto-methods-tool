@@ -1,0 +1,713 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Verschlüsselungswerkzeug</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #0f1117;
+    --surface: #1a1d27;
+    --surface2: #242836;
+    --border: #2e3345;
+    --text: #e2e4eb;
+    --text-dim: #8b8fa3;
+    --accent: #6c8aff;
+    --accent-hover: #8aa2ff;
+    --accent-bg: rgba(108,138,255,.1);
+    --red: #ff6b6b;
+    --green: #6bffb8;
+    --radius: 10px;
+    --mono: 'SF Mono', 'Fira Code', 'Cascadia Code', 'Consolas', monospace;
+  }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    line-height: 1.5;
+  }
+
+  header {
+    padding: 2rem 2rem 1rem;
+    text-align: center;
+    border-bottom: 1px solid var(--border);
+  }
+  header h1 {
+    font-size: 1.6rem;
+    font-weight: 700;
+    letter-spacing: -.02em;
+  }
+  header h1 span { color: var(--accent); }
+  header p { color: var(--text-dim); font-size: .9rem; margin-top: .3rem; }
+
+  .container {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 1.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1.2rem;
+  }
+
+  /* ── Tabs ── */
+  .tabs {
+    display: flex;
+    gap: .4rem;
+    flex-wrap: wrap;
+  }
+  .tab {
+    padding: .55rem 1.1rem;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    color: var(--text-dim);
+    font-size: .85rem;
+    cursor: pointer;
+    transition: .15s;
+  }
+  .tab:hover { color: var(--text); border-color: var(--accent); }
+  .tab.active {
+    background: var(--accent-bg);
+    border-color: var(--accent);
+    color: var(--accent);
+    font-weight: 600;
+  }
+
+  /* ── Cards ── */
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 1.2rem;
+  }
+  .card h3 {
+    font-size: .8rem;
+    text-transform: uppercase;
+    letter-spacing: .06em;
+    color: var(--text-dim);
+    margin-bottom: .8rem;
+  }
+
+  /* ── Key section ── */
+  .key-section { display: none; }
+  .key-section.active { display: block; }
+
+  label {
+    display: block;
+    font-size: .8rem;
+    color: var(--text-dim);
+    margin-bottom: .3rem;
+    text-transform: uppercase;
+    letter-spacing: .04em;
+  }
+
+  input[type="text"], textarea, select {
+    width: 100%;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    color: var(--text);
+    font-family: var(--mono);
+    font-size: .88rem;
+    padding: .6rem .8rem;
+    outline: none;
+    transition: border-color .15s;
+  }
+  input:focus, textarea:focus, select:focus {
+    border-color: var(--accent);
+  }
+  textarea {
+    resize: vertical;
+    min-height: 130px;
+  }
+
+  .row { display: flex; gap: 1rem; flex-wrap: wrap; }
+  .row > * { flex: 1; min-width: 0; }
+
+  /* ── Substitution alphabet display ── */
+  .alpha-display {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(32px, 1fr));
+    gap: 4px;
+    margin-top: .5rem;
+    font-family: var(--mono);
+    font-size: .78rem;
+    text-align: center;
+  }
+  .alpha-cell {
+    background: var(--surface2);
+    border-radius: 5px;
+    padding: 4px 0;
+    line-height: 1.2;
+  }
+  .alpha-cell .from { color: var(--text-dim); font-size: .65rem; }
+  .alpha-cell .to { color: var(--accent); font-weight: 600; }
+
+  /* ── Playfair matrix ── */
+  .playfair-grid {
+    display: grid;
+    grid-template-columns: repeat(5, 42px);
+    gap: 4px;
+    margin-top: .5rem;
+    font-family: var(--mono);
+  }
+  .pf-cell {
+    width: 42px; height: 42px;
+    display: flex; align-items: center; justify-content: center;
+    background: var(--surface2);
+    border-radius: 6px;
+    font-size: .95rem;
+    font-weight: 600;
+    color: var(--accent);
+  }
+
+  /* ── Buttons ── */
+  .btn-row {
+    display: flex;
+    gap: .5rem;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+  button {
+    padding: .55rem 1.2rem;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    font-size: .85rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: .15s;
+    background: var(--surface2);
+    color: var(--text);
+  }
+  button:hover { border-color: var(--accent); color: var(--accent); }
+  .btn-primary {
+    background: var(--accent);
+    color: #fff;
+    border-color: var(--accent);
+  }
+  .btn-primary:hover { background: var(--accent-hover); border-color: var(--accent-hover); color: #fff; }
+  .btn-danger { color: var(--red); }
+  .btn-danger:hover { border-color: var(--red); }
+
+  .spacer { flex: 1; }
+
+  /* ── File import ── */
+  .file-label {
+    display: inline-flex;
+    align-items: center;
+    gap: .4rem;
+    padding: .55rem 1.2rem;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    font-size: .85rem;
+    cursor: pointer;
+    transition: .15s;
+    background: var(--surface2);
+    color: var(--text);
+  }
+  .file-label:hover { border-color: var(--accent); color: var(--accent); }
+  .file-label input { display: none; }
+
+  /* ── Info text ── */
+  .info {
+    background: var(--accent-bg);
+    border: 1px solid rgba(108,138,255,.2);
+    border-radius: 8px;
+    padding: .7rem 1rem;
+    font-size: .82rem;
+    color: var(--text-dim);
+    line-height: 1.6;
+  }
+  .info strong { color: var(--text); }
+
+  /* ── Char count ── */
+  .count {
+    font-size: .75rem;
+    color: var(--text-dim);
+    text-align: right;
+    margin-top: .25rem;
+    font-family: var(--mono);
+  }
+
+  /* ── Responsive ── */
+  @media (max-width: 650px) {
+    .row { flex-direction: column; }
+    .playfair-grid { grid-template-columns: repeat(5, 1fr); }
+    .pf-cell { width: auto; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <h1><span>&#x1f512;</span> Verschlüsselungswerkzeug</h1>
+  <p>Klassische Chiffren ausprobieren &amp; verstehen</p>
+</header>
+
+<div class="container">
+
+  <!-- Method tabs -->
+  <div class="tabs" id="tabs">
+    <div class="tab active" data-method="substitution">Einfache Substitution</div>
+    <div class="tab" data-method="vigenere">Polyalphabetische Substitution</div>
+    <div class="tab" data-method="playfair">Playfair</div>
+    <div class="tab" data-method="transposition">Transposition</div>
+  </div>
+
+  <!-- Key config -->
+  <div class="card">
+    <h3>Schlüssel-Einstellungen</h3>
+
+    <!-- Simple Substitution -->
+    <div class="key-section active" id="key-substitution">
+      <div style="display:flex;gap:.5rem;flex-wrap:wrap;margin-bottom:.6rem">
+        <div style="flex:1;min-width:200px">
+          <label for="sub-key">Substitutions-Alphabet (26 Buchstaben)</label>
+          <input type="text" id="sub-key" maxlength="26" placeholder="z.B. QWERTZUIOPASDFGHJKLYXCVBNM" spellcheck="false">
+        </div>
+        <div style="display:flex;gap:.4rem;align-items:flex-end">
+          <button onclick="generateRandomSubKey()" title="Zufällig erzeugen">Zufällig</button>
+          <button onclick="resetSubKey()" class="btn-danger" title="Zurücksetzen">Zurücksetzen</button>
+        </div>
+      </div>
+      <div class="alpha-display" id="sub-alpha-display"></div>
+    </div>
+
+    <!-- Vigenère -->
+    <div class="key-section" id="key-vigenere">
+      <label for="vig-key">Schlüsselwort</label>
+      <input type="text" id="vig-key" placeholder="z.B. GEHEIM" spellcheck="false">
+      <div class="info" style="margin-top:.6rem">
+        <strong>Polyalphabetische Substitution (Vigenère):</strong> Jeder Buchstabe des Schlüsselworts bestimmt die Verschiebung des entsprechenden Klartextbuchstabens. A=0, B=1, … Z=25.
+      </div>
+    </div>
+
+    <!-- Playfair -->
+    <div class="key-section" id="key-playfair">
+      <label for="pf-key">Schlüsselwort</label>
+      <input type="text" id="pf-key" placeholder="z.B. MONARCHIE" spellcheck="false">
+      <div style="margin-top:.6rem">
+        <label>5×5 Matrix (I/J zusammengelegt)</label>
+        <div class="playfair-grid" id="pf-grid"></div>
+      </div>
+      <div class="info" style="margin-top:.6rem">
+        <strong>Playfair:</strong> Verschlüsselt Buchstabenpaare (Bigramme). Doppelbuchstaben werden mit X getrennt. Bei ungerader Länge wird X angehängt.
+      </div>
+    </div>
+
+    <!-- Transposition -->
+    <div class="key-section" id="key-transposition">
+      <label for="trans-key">Schlüsselwort (bestimmt Spaltenreihenfolge)</label>
+      <input type="text" id="trans-key" placeholder="z.B. SCHLÜSSEL" spellcheck="false">
+      <div style="margin-top:.5rem">
+        <label>Spaltenreihenfolge</label>
+        <div id="trans-order" style="font-family:var(--mono);color:var(--accent);font-size:.9rem;margin-top:.2rem">—</div>
+      </div>
+      <div class="info" style="margin-top:.6rem">
+        <strong>Spaltentransposition:</strong> Der Klartext wird zeilenweise in eine Matrix geschrieben. Die Spalten werden dann gemäß der alphabetischen Reihenfolge des Schlüsselworts ausgelesen.
+      </div>
+    </div>
+  </div>
+
+  <!-- Input / Output -->
+  <div class="row">
+    <div class="card" style="flex:1">
+      <h3>Eingabe</h3>
+      <textarea id="input" placeholder="Klartext oder Geheimtext eingeben…" spellcheck="false"></textarea>
+      <div class="count"><span id="input-count">0</span> Zeichen</div>
+      <div class="btn-row" style="margin-top:.6rem">
+        <label class="file-label">
+          &#128194; Datei importieren
+          <input type="file" id="file-import" accept=".txt,.md,.csv,.log,.json,.xml,.html">
+        </label>
+        <button onclick="document.getElementById('input').value='';updateCount()">Leeren</button>
+      </div>
+    </div>
+    <div class="card" style="flex:1">
+      <h3>Ausgabe</h3>
+      <textarea id="output" readonly placeholder="Ergebnis erscheint hier…" spellcheck="false"></textarea>
+      <div class="count"><span id="output-count">0</span> Zeichen</div>
+      <div class="btn-row" style="margin-top:.6rem">
+        <button onclick="copyOutput()">&#128203; Kopieren</button>
+        <button onclick="swapTexts()">&#8644; Als Eingabe übernehmen</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Action buttons -->
+  <div class="btn-row" style="justify-content:center">
+    <button class="btn-primary" onclick="doEncrypt()" style="min-width:160px">&#x1f510; Verschlüsseln</button>
+    <button class="btn-primary" onclick="doDecrypt()" style="min-width:160px;background:#2a9d6f;border-color:#2a9d6f">&#x1f513; Entschlüsseln</button>
+  </div>
+
+</div>
+
+<script>
+// ════════════════════════════════════════════════════════════════
+//  STATE
+// ════════════════════════════════════════════════════════════════
+let currentMethod = 'substitution';
+const ABC = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+
+// ════════════════════════════════════════════════════════════════
+//  TABS
+// ════════════════════════════════════════════════════════════════
+document.getElementById('tabs').addEventListener('click', e => {
+  const tab = e.target.closest('.tab');
+  if (!tab) return;
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  tab.classList.add('active');
+  currentMethod = tab.dataset.method;
+  document.querySelectorAll('.key-section').forEach(s => s.classList.remove('active'));
+  document.getElementById('key-' + currentMethod).classList.add('active');
+});
+
+// ════════════════════════════════════════════════════════════════
+//  FILE IMPORT
+// ════════════════════════════════════════════════════════════════
+document.getElementById('file-import').addEventListener('change', e => {
+  const file = e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = ev => {
+    document.getElementById('input').value = ev.target.result;
+    updateCount();
+  };
+  reader.readAsText(file);
+  e.target.value = '';
+});
+
+// ════════════════════════════════════════════════════════════════
+//  HELPERS
+// ════════════════════════════════════════════════════════════════
+function clean(s) { return s.toUpperCase().replace(/[^A-Z]/g, ''); }
+
+function updateCount() {
+  document.getElementById('input-count').textContent = document.getElementById('input').value.length;
+  document.getElementById('output-count').textContent = document.getElementById('output').value.length;
+}
+document.getElementById('input').addEventListener('input', updateCount);
+
+function copyOutput() {
+  const out = document.getElementById('output');
+  navigator.clipboard.writeText(out.value);
+}
+
+function swapTexts() {
+  const inp = document.getElementById('input');
+  const out = document.getElementById('output');
+  inp.value = out.value;
+  out.value = '';
+  updateCount();
+}
+
+function setOutput(s) {
+  document.getElementById('output').value = s;
+  updateCount();
+}
+
+// ════════════════════════════════════════════════════════════════
+//  1) SIMPLE SUBSTITUTION
+// ════════════════════════════════════════════════════════════════
+const subKeyInput = document.getElementById('sub-key');
+
+function renderSubAlpha() {
+  const key = subKeyInput.value.toUpperCase();
+  const disp = document.getElementById('sub-alpha-display');
+  disp.innerHTML = '';
+  for (let i = 0; i < 26; i++) {
+    const c = key[i] || '?';
+    disp.innerHTML += `<div class="alpha-cell"><div class="from">${ABC[i]}</div><div class="to">${c}</div></div>`;
+  }
+}
+
+function generateRandomSubKey() {
+  const arr = ABC.split('');
+  for (let i = arr.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+  }
+  subKeyInput.value = arr.join('');
+  renderSubAlpha();
+}
+
+function resetSubKey() {
+  subKeyInput.value = '';
+  renderSubAlpha();
+}
+
+subKeyInput.addEventListener('input', renderSubAlpha);
+renderSubAlpha();
+
+function subEncrypt(text, key) {
+  if (key.length !== 26 || new Set(key).size !== 26) return '⚠ Schlüssel muss genau 26 verschiedene Buchstaben enthalten.';
+  let result = '';
+  for (const ch of text) {
+    const upper = ch.toUpperCase();
+    const idx = ABC.indexOf(upper);
+    if (idx === -1) { result += ch; continue; }
+    const mapped = key[idx];
+    result += ch === upper ? mapped : mapped.toLowerCase();
+  }
+  return result;
+}
+
+function subDecrypt(text, key) {
+  if (key.length !== 26 || new Set(key).size !== 26) return '⚠ Schlüssel muss genau 26 verschiedene Buchstaben enthalten.';
+  const reverseKey = Array(26);
+  for (let i = 0; i < 26; i++) reverseKey[ABC.indexOf(key[i])] = ABC[i];
+  return subEncrypt(text, reverseKey.join(''));
+}
+
+// ════════════════════════════════════════════════════════════════
+//  2) VIGENÈRE (Polyalphabetic Substitution)
+// ════════════════════════════════════════════════════════════════
+function vigEncrypt(text, key) {
+  key = clean(key);
+  if (!key) return '⚠ Bitte ein Schlüsselwort eingeben.';
+  let result = '', ki = 0;
+  for (const ch of text) {
+    const upper = ch.toUpperCase();
+    const idx = ABC.indexOf(upper);
+    if (idx === -1) { result += ch; continue; }
+    const shift = ABC.indexOf(key[ki % key.length]);
+    const enc = ABC[(idx + shift) % 26];
+    result += ch === upper ? enc : enc.toLowerCase();
+    ki++;
+  }
+  return result;
+}
+
+function vigDecrypt(text, key) {
+  key = clean(key);
+  if (!key) return '⚠ Bitte ein Schlüsselwort eingeben.';
+  let result = '', ki = 0;
+  for (const ch of text) {
+    const upper = ch.toUpperCase();
+    const idx = ABC.indexOf(upper);
+    if (idx === -1) { result += ch; continue; }
+    const shift = ABC.indexOf(key[ki % key.length]);
+    const dec = ABC[(idx - shift + 26) % 26];
+    result += ch === upper ? dec : dec.toLowerCase();
+    ki++;
+  }
+  return result;
+}
+
+// ════════════════════════════════════════════════════════════════
+//  3) PLAYFAIR
+// ════════════════════════════════════════════════════════════════
+const pfKeyInput = document.getElementById('pf-key');
+
+function buildPlayfairMatrix(keyword) {
+  keyword = clean(keyword).replace(/J/g, 'I');
+  const seen = new Set();
+  const matrix = [];
+  for (const ch of keyword + ABC.replace('J', '')) {
+    if (seen.has(ch)) continue;
+    seen.add(ch);
+    matrix.push(ch);
+  }
+  return matrix; // length 25
+}
+
+function renderPfGrid() {
+  const matrix = buildPlayfairMatrix(pfKeyInput.value);
+  const grid = document.getElementById('pf-grid');
+  grid.innerHTML = '';
+  for (const ch of matrix) {
+    grid.innerHTML += `<div class="pf-cell">${ch}</div>`;
+  }
+}
+
+pfKeyInput.addEventListener('input', renderPfGrid);
+renderPfGrid();
+
+function pfPos(matrix, ch) {
+  const idx = matrix.indexOf(ch);
+  return [Math.floor(idx / 5), idx % 5];
+}
+
+function playfairEncrypt(text, keyword) {
+  const matrix = buildPlayfairMatrix(keyword);
+  let prepared = clean(text).replace(/J/g, 'I');
+  // build digraphs
+  const digraphs = [];
+  let i = 0;
+  while (i < prepared.length) {
+    const a = prepared[i];
+    let b = prepared[i + 1] || 'X';
+    if (a === b) { b = 'X'; i++; } else { i += 2; }
+    digraphs.push([a, b]);
+  }
+  if (digraphs.length === 0) return '';
+
+  let result = '';
+  for (const [a, b] of digraphs) {
+    const [ra, ca] = pfPos(matrix, a);
+    const [rb, cb] = pfPos(matrix, b);
+    if (ra === rb) {
+      result += matrix[ra * 5 + (ca + 1) % 5];
+      result += matrix[rb * 5 + (cb + 1) % 5];
+    } else if (ca === cb) {
+      result += matrix[((ra + 1) % 5) * 5 + ca];
+      result += matrix[((rb + 1) % 5) * 5 + cb];
+    } else {
+      result += matrix[ra * 5 + cb];
+      result += matrix[rb * 5 + ca];
+    }
+  }
+  return result.match(/.{1,5}/g).join(' ');
+}
+
+function playfairDecrypt(text, keyword) {
+  const matrix = buildPlayfairMatrix(keyword);
+  const prepared = clean(text);
+  if (prepared.length % 2 !== 0) return '⚠ Geheimtext muss eine gerade Anzahl an Buchstaben haben.';
+
+  let result = '';
+  for (let i = 0; i < prepared.length; i += 2) {
+    const a = prepared[i], b = prepared[i + 1];
+    const [ra, ca] = pfPos(matrix, a);
+    const [rb, cb] = pfPos(matrix, b);
+    if (ra === rb) {
+      result += matrix[ra * 5 + (ca + 4) % 5];
+      result += matrix[rb * 5 + (cb + 4) % 5];
+    } else if (ca === cb) {
+      result += matrix[((ra + 4) % 5) * 5 + ca];
+      result += matrix[((rb + 4) % 5) * 5 + cb];
+    } else {
+      result += matrix[ra * 5 + cb];
+      result += matrix[rb * 5 + ca];
+    }
+  }
+  return result.match(/.{1,5}/g).join(' ');
+}
+
+// ════════════════════════════════════════════════════════════════
+//  4) COLUMNAR TRANSPOSITION
+// ════════════════════════════════════════════════════════════════
+const transKeyInput = document.getElementById('trans-key');
+
+function getColumnOrder(keyword) {
+  keyword = clean(keyword);
+  if (!keyword) return [];
+  const indexed = [...keyword].map((ch, i) => ({ ch, i }));
+  indexed.sort((a, b) => a.ch < b.ch ? -1 : a.ch > b.ch ? 1 : a.i - b.i);
+  const order = Array(keyword.length);
+  indexed.forEach((item, rank) => { order[item.i] = rank; });
+  return order;
+}
+
+function renderTransOrder() {
+  const order = getColumnOrder(transKeyInput.value);
+  const el = document.getElementById('trans-order');
+  if (order.length === 0) { el.textContent = '—'; return; }
+  const key = clean(transKeyInput.value);
+  el.textContent = [...key].map((ch, i) => `${ch}→${order[i] + 1}`).join('  ');
+}
+
+transKeyInput.addEventListener('input', renderTransOrder);
+
+function transEncrypt(text, keyword) {
+  const order = getColumnOrder(keyword);
+  if (order.length === 0) return '⚠ Bitte ein Schlüsselwort eingeben.';
+  const cols = order.length;
+  // pad with X
+  while (text.length % cols !== 0) text += 'X';
+  const rows = text.length / cols;
+  // build grid row-wise
+  const grid = [];
+  for (let r = 0; r < rows; r++) {
+    grid.push(text.slice(r * cols, (r + 1) * cols).split(''));
+  }
+  // read columns in key order
+  let result = '';
+  for (let rank = 0; rank < cols; rank++) {
+    const col = order.indexOf(rank);
+    for (let r = 0; r < rows; r++) {
+      result += grid[r][col];
+    }
+  }
+  return result.match(/.{1,5}/g).join(' ');
+}
+
+function transDecrypt(text, keyword) {
+  text = text.replace(/\s/g, '');
+  const order = getColumnOrder(keyword);
+  if (order.length === 0) return '⚠ Bitte ein Schlüsselwort eingeben.';
+  const cols = order.length;
+  if (text.length % cols !== 0) return '⚠ Textlänge ist nicht durch Schlüssellänge teilbar. Ggf. wurde der Text verändert.';
+  const rows = text.length / cols;
+  // fill columns in key order
+  const grid = Array.from({ length: rows }, () => Array(cols).fill(''));
+  let pos = 0;
+  for (let rank = 0; rank < cols; rank++) {
+    const col = order.indexOf(rank);
+    for (let r = 0; r < rows; r++) {
+      grid[r][col] = text[pos++];
+    }
+  }
+  // read row-wise
+  let result = '';
+  for (let r = 0; r < rows; r++) {
+    result += grid[r].join('');
+  }
+  return result;
+}
+
+// ════════════════════════════════════════════════════════════════
+//  ENCRYPT / DECRYPT DISPATCH
+// ════════════════════════════════════════════════════════════════
+function doEncrypt() {
+  const text = document.getElementById('input').value;
+  if (!text) return;
+  let result;
+  switch (currentMethod) {
+    case 'substitution':
+      result = subEncrypt(text, clean(subKeyInput.value));
+      break;
+    case 'vigenere':
+      result = vigEncrypt(text, vigKeyInput.value);
+      break;
+    case 'playfair':
+      result = playfairEncrypt(text, pfKeyInput.value);
+      break;
+    case 'transposition':
+      result = transEncrypt(clean(text), transKeyInput.value);
+      break;
+  }
+  setOutput(result);
+}
+
+function doDecrypt() {
+  const text = document.getElementById('input').value;
+  if (!text) return;
+  let result;
+  switch (currentMethod) {
+    case 'substitution':
+      result = subDecrypt(text, clean(subKeyInput.value));
+      break;
+    case 'vigenere':
+      result = vigDecrypt(text, vigKeyInput.value);
+      break;
+    case 'playfair':
+      result = playfairDecrypt(text, pfKeyInput.value);
+      break;
+    case 'transposition':
+      result = transDecrypt(text, transKeyInput.value);
+      break;
+  }
+  setOutput(result);
+}
+
+// alias for vigenère key input
+const vigKeyInput = document.getElementById('vig-key');
+</script>
+
+</body>
+</html>
