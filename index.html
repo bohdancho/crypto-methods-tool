@@ -19,6 +19,8 @@
     --accent-bg: rgba(108,138,255,.1);
     --red: #ff6b6b;
     --green: #6bffb8;
+    --orange: #ffb86c;
+    --yellow: #f1fa8c;
     --radius: 10px;
     --mono: 'SF Mono', 'Fira Code', 'Cascadia Code', 'Consolas', monospace;
   }
@@ -32,17 +34,25 @@
   }
 
   header {
-    padding: 2rem 2rem 1rem;
-    text-align: center;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    background: var(--bg);
+    padding: .7rem 1.5rem;
     border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
   }
-  header h1 {
-    font-size: 1.6rem;
-    font-weight: 700;
-    letter-spacing: -.02em;
-  }
+  .header-left { display: flex; align-items: center; gap: .8rem; }
+  header h1 { font-size: 1.2rem; font-weight: 700; letter-spacing: -.02em; }
   header h1 span { color: var(--accent); }
-  header p { color: var(--text-dim); font-size: .9rem; margin-top: .3rem; }
+  .header-right { display: flex; align-items: center; gap: .8rem; }
+  .header-credit { font-size: .75rem; color: var(--text-dim); text-align: right; line-height: 1.4; }
+  .header-credit strong { color: var(--text); }
+  .header-credit a { color: var(--accent); text-decoration: none; }
+  .header-credit a:hover { text-decoration: underline; }
+  #qr { border-radius: 3px; image-rendering: pixelated; }
 
   .container {
     max-width: 1100px;
@@ -54,11 +64,7 @@
   }
 
   /* ── Tabs ── */
-  .tabs {
-    display: flex;
-    gap: .4rem;
-    flex-wrap: wrap;
-  }
+  .tabs { display: flex; gap: .4rem; flex-wrap: wrap; }
   .tab {
     padding: .55rem 1.1rem;
     background: var(--surface);
@@ -92,7 +98,6 @@
     margin-bottom: .8rem;
   }
 
-  /* ── Key section ── */
   .key-section { display: none; }
   .key-section.active { display: block; }
 
@@ -117,13 +122,8 @@
     outline: none;
     transition: border-color .15s;
   }
-  input:focus, textarea:focus, select:focus {
-    border-color: var(--accent);
-  }
-  textarea {
-    resize: vertical;
-    min-height: 130px;
-  }
+  input:focus, textarea:focus, select:focus { border-color: var(--accent); }
+  textarea { resize: vertical; min-height: 130px; }
 
   .row { display: flex; gap: 1rem; flex-wrap: wrap; }
   .row > * { flex: 1; min-width: 0; }
@@ -166,12 +166,7 @@
   }
 
   /* ── Buttons ── */
-  .btn-row {
-    display: flex;
-    gap: .5rem;
-    flex-wrap: wrap;
-    align-items: center;
-  }
+  .btn-row { display: flex; gap: .5rem; flex-wrap: wrap; align-items: center; }
   button {
     padding: .55rem 1.2rem;
     border-radius: 8px;
@@ -184,18 +179,13 @@
     color: var(--text);
   }
   button:hover { border-color: var(--accent); color: var(--accent); }
-  .btn-primary {
-    background: var(--accent);
-    color: #fff;
-    border-color: var(--accent);
-  }
+  .btn-primary { background: var(--accent); color: #fff; border-color: var(--accent); }
   .btn-primary:hover { background: var(--accent-hover); border-color: var(--accent-hover); color: #fff; }
   .btn-danger { color: var(--red); }
   .btn-danger:hover { border-color: var(--red); }
+  .btn-orange { color: var(--orange); }
+  .btn-orange:hover { border-color: var(--orange); }
 
-  .spacer { flex: 1; }
-
-  /* ── File import ── */
   .file-label {
     display: inline-flex;
     align-items: center;
@@ -212,7 +202,6 @@
   .file-label:hover { border-color: var(--accent); color: var(--accent); }
   .file-label input { display: none; }
 
-  /* ── Info text ── */
   .info {
     background: var(--accent-bg);
     border: 1px solid rgba(108,138,255,.2);
@@ -224,7 +213,6 @@
   }
   .info strong { color: var(--text); }
 
-  /* ── Char count ── */
   .count {
     font-size: .75rem;
     color: var(--text-dim);
@@ -233,19 +221,196 @@
     font-family: var(--mono);
   }
 
+  /* ══════════════════════════════════════════
+     ATTACK PANEL
+     ══════════════════════════════════════════ */
+  #attack-panel { display: none; }
+  #attack-panel.visible { display: block; }
+
+  #attack-panel .card { border-color: rgba(255,184,108,.25); }
+  #attack-panel .card h3 { color: var(--orange); }
+
+  /* ── Frequency bars ── */
+  .freq-container {
+    display: flex;
+    gap: 2px;
+    align-items: flex-end;
+    height: 140px;
+    padding: 0 2px;
+    margin-top: .5rem;
+  }
+  .freq-col {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+    min-width: 0;
+  }
+  .freq-bars {
+    flex: 1;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    align-items: center;
+    position: relative;
+  }
+  .freq-bar {
+    width: 70%;
+    border-radius: 3px 3px 0 0;
+    min-height: 0;
+    transition: height .25s;
+  }
+  .freq-bar.cipher { background: var(--accent); position: absolute; bottom: 0; left: 0; width: 45%; margin-left: 5%; }
+  .freq-bar.german { background: rgba(255,184,108,.35); position: absolute; bottom: 0; right: 0; width: 45%; margin-right: 5%; }
+  .freq-label {
+    font-family: var(--mono);
+    font-size: .6rem;
+    color: var(--text-dim);
+    text-align: center;
+    line-height: 1;
+    flex-shrink: 0;
+  }
+  .freq-label.letter { font-size: .7rem; color: var(--text); font-weight: 600; }
+
+  .freq-legend {
+    display: flex;
+    gap: 1.2rem;
+    margin-top: .5rem;
+    font-size: .75rem;
+    color: var(--text-dim);
+  }
+  .freq-legend span::before {
+    content: '';
+    display: inline-block;
+    width: 10px; height: 10px;
+    border-radius: 2px;
+    margin-right: .3rem;
+    vertical-align: middle;
+  }
+  .freq-legend .leg-cipher::before { background: var(--accent); }
+  .freq-legend .leg-german::before { background: rgba(255,184,108,.5); }
+
+  /* ── Mapping grid ── */
+  .mapping-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(56px, 1fr));
+    gap: 5px;
+    margin-top: .5rem;
+  }
+  .map-cell {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+  }
+  .map-cell .cipher-letter {
+    font-family: var(--mono);
+    font-size: .75rem;
+    color: var(--text-dim);
+    font-weight: 600;
+  }
+  .map-cell .cipher-freq {
+    font-family: var(--mono);
+    font-size: .6rem;
+    color: var(--text-dim);
+  }
+  .map-cell input {
+    width: 36px;
+    height: 36px;
+    text-align: center;
+    padding: 0;
+    font-family: var(--mono);
+    font-size: 1rem;
+    font-weight: 700;
+    border-radius: 6px;
+    text-transform: uppercase;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    color: var(--text);
+    outline: none;
+    transition: .15s;
+  }
+  .map-cell input:focus { border-color: var(--accent); box-shadow: 0 0 0 2px rgba(108,138,255,.2); }
+  .map-cell input.auto-filled {
+    border-color: var(--orange);
+    color: var(--orange);
+    background: rgba(255,184,108,.08);
+  }
+  .map-cell input.user-set {
+    border-color: var(--green);
+    color: var(--green);
+    background: rgba(107,255,184,.08);
+  }
+  .map-cell input.conflict {
+    border-color: var(--red) !important;
+    color: var(--red) !important;
+    background: rgba(255,107,107,.1) !important;
+  }
+
+  /* ── Attack preview ── */
+  .attack-preview {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: .8rem 1rem;
+    font-family: var(--mono);
+    font-size: .85rem;
+    line-height: 1.7;
+    min-height: 60px;
+    max-height: 200px;
+    overflow-y: auto;
+    white-space: pre-wrap;
+    word-break: break-all;
+  }
+  .attack-preview .solved { color: var(--green); font-weight: 600; }
+  .attack-preview .unsolved { color: var(--red); opacity: .5; }
+
+  /* ── Bigram list ── */
+  .bigram-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+    font-family: var(--mono);
+    font-size: .78rem;
+  }
+  .bigram-tag {
+    background: var(--surface2);
+    border-radius: 4px;
+    padding: 2px 7px;
+    display: flex;
+    gap: 6px;
+    align-items: baseline;
+  }
+  .bigram-tag .bg-pair { color: var(--accent); font-weight: 600; }
+  .bigram-tag .bg-count { color: var(--text-dim); font-size: .65rem; }
+
+
   /* ── Responsive ── */
   @media (max-width: 650px) {
     .row { flex-direction: column; }
     .playfair-grid { grid-template-columns: repeat(5, 1fr); }
     .pf-cell { width: auto; }
+    .freq-container { height: 100px; }
+    .mapping-grid { grid-template-columns: repeat(auto-fill, minmax(46px, 1fr)); }
   }
 </style>
 </head>
 <body>
 
 <header>
-  <h1><span>&#x1f512;</span> Verschlüsselungswerkzeug</h1>
-  <p>Klassische Chiffren ausprobieren &amp; verstehen</p>
+  <div class="header-left">
+    <h1><span>&#x1f512;</span> Verschl&uuml;sselungswerkzeug</h1>
+  </div>
+  <div class="header-right">
+    <div class="header-credit">
+      made with &#10084;&#65039; by <strong>bohdancho</strong><br>
+      <a href="https://github.com/bohdancho" target="_blank">GitHub</a> &middot;
+      <a href="https://instagram.com/bohdancho" target="_blank">Instagram</a>
+    </div>
+    <canvas id="qr" width="1" height="1"></canvas>
+  </div>
 </header>
 
 <div class="container">
@@ -253,14 +418,14 @@
   <!-- Method tabs -->
   <div class="tabs" id="tabs">
     <div class="tab active" data-method="substitution">Einfache Substitution</div>
-    <div class="tab" data-method="vigenere">Polyalphabetische Substitution</div>
+    <div class="tab" data-method="vigenere">Vigen&egrave;re</div>
     <div class="tab" data-method="playfair">Playfair</div>
     <div class="tab" data-method="transposition">Transposition</div>
   </div>
 
   <!-- Key config -->
   <div class="card">
-    <h3>Schlüssel-Einstellungen</h3>
+    <h3>Schl&uuml;ssel-Einstellungen</h3>
 
     <!-- Simple Substitution -->
     <div class="key-section active" id="key-substitution">
@@ -270,45 +435,45 @@
           <input type="text" id="sub-key" maxlength="26" placeholder="z.B. QWERTZUIOPASDFGHJKLYXCVBNM" spellcheck="false">
         </div>
         <div style="display:flex;gap:.4rem;align-items:flex-end">
-          <button onclick="generateRandomSubKey()" title="Zufällig erzeugen">Zufällig</button>
-          <button onclick="resetSubKey()" class="btn-danger" title="Zurücksetzen">Zurücksetzen</button>
+          <button onclick="generateRandomSubKey()" title="Zuf&auml;llig erzeugen">Zuf&auml;llig</button>
+          <button onclick="resetSubKey()" class="btn-danger" title="Zur&uuml;cksetzen">Zur&uuml;cksetzen</button>
         </div>
       </div>
       <div class="alpha-display" id="sub-alpha-display"></div>
     </div>
 
-    <!-- Vigenère -->
+    <!-- Vigenere -->
     <div class="key-section" id="key-vigenere">
-      <label for="vig-key">Schlüsselwort</label>
+      <label for="vig-key">Schl&uuml;sselwort</label>
       <input type="text" id="vig-key" placeholder="z.B. GEHEIM" spellcheck="false">
       <div class="info" style="margin-top:.6rem">
-        <strong>Polyalphabetische Substitution (Vigenère):</strong> Jeder Buchstabe des Schlüsselworts bestimmt die Verschiebung des entsprechenden Klartextbuchstabens. A=0, B=1, … Z=25.
+        <strong>Vigen&egrave;re-Chiffre:</strong> Jeder Buchstabe des Schl&uuml;sselworts bestimmt die Verschiebung des entsprechenden Klartextbuchstabens. A=0, B=1, &hellip; Z=25. Bei Schl&uuml;sselwort &bdquo;KEY&ldquo; wird der 1.&nbsp;Buchstabe um K=10 verschoben, der 2.&nbsp;um E=4, der 3.&nbsp;um Y=24, dann wieder K, E, Y, &hellip;
       </div>
     </div>
 
     <!-- Playfair -->
     <div class="key-section" id="key-playfair">
-      <label for="pf-key">Schlüsselwort</label>
+      <label for="pf-key">Schl&uuml;sselwort</label>
       <input type="text" id="pf-key" placeholder="z.B. MONARCHIE" spellcheck="false">
       <div style="margin-top:.6rem">
-        <label>5×5 Matrix (I/J zusammengelegt)</label>
+        <label>5&times;5 Matrix (I/J zusammengelegt)</label>
         <div class="playfair-grid" id="pf-grid"></div>
       </div>
       <div class="info" style="margin-top:.6rem">
-        <strong>Playfair:</strong> Verschlüsselt Buchstabenpaare (Bigramme). Doppelbuchstaben werden mit X getrennt. Bei ungerader Länge wird X angehängt.
+        <strong>Playfair:</strong> Verschl&uuml;sselt Buchstabenpaare (Bigramme). Doppelbuchstaben werden mit X getrennt. Bei ungerader L&auml;nge wird X angeh&auml;ngt.
       </div>
     </div>
 
     <!-- Transposition -->
     <div class="key-section" id="key-transposition">
-      <label for="trans-key">Schlüsselwort (bestimmt Spaltenreihenfolge)</label>
-      <input type="text" id="trans-key" placeholder="z.B. SCHLÜSSEL" spellcheck="false">
+      <label for="trans-key">Schl&uuml;sselwort (bestimmt Spaltenreihenfolge)</label>
+      <input type="text" id="trans-key" placeholder="z.B. SCHLUESSEL" spellcheck="false">
       <div style="margin-top:.5rem">
         <label>Spaltenreihenfolge</label>
-        <div id="trans-order" style="font-family:var(--mono);color:var(--accent);font-size:.9rem;margin-top:.2rem">—</div>
+        <div id="trans-order" style="font-family:var(--mono);color:var(--accent);font-size:.9rem;margin-top:.2rem">&mdash;</div>
       </div>
       <div class="info" style="margin-top:.6rem">
-        <strong>Spaltentransposition:</strong> Der Klartext wird zeilenweise in eine Matrix geschrieben. Die Spalten werden dann gemäß der alphabetischen Reihenfolge des Schlüsselworts ausgelesen.
+        <strong>Spaltentransposition:</strong> Der Klartext wird zeilenweise in eine Matrix geschrieben. Die Spalten werden dann gem&auml;&szlig; der alphabetischen Reihenfolge des Schl&uuml;sselworts ausgelesen.
       </div>
     </div>
   </div>
@@ -317,7 +482,7 @@
   <div class="row">
     <div class="card" style="flex:1">
       <h3>Eingabe</h3>
-      <textarea id="input" placeholder="Klartext oder Geheimtext eingeben…" spellcheck="false"></textarea>
+      <textarea id="input" placeholder="Klartext oder Geheimtext eingeben&hellip;" spellcheck="false"></textarea>
       <div class="count"><span id="input-count">0</span> Zeichen</div>
       <div class="btn-row" style="margin-top:.6rem">
         <label class="file-label">
@@ -329,22 +494,82 @@
     </div>
     <div class="card" style="flex:1">
       <h3>Ausgabe</h3>
-      <textarea id="output" readonly placeholder="Ergebnis erscheint hier…" spellcheck="false"></textarea>
+      <textarea id="output" readonly placeholder="Ergebnis erscheint hier&hellip;" spellcheck="false"></textarea>
       <div class="count"><span id="output-count">0</span> Zeichen</div>
       <div class="btn-row" style="margin-top:.6rem">
         <button onclick="copyOutput()">&#128203; Kopieren</button>
-        <button onclick="swapTexts()">&#8644; Als Eingabe übernehmen</button>
+        <button onclick="swapTexts()">&#8644; Als Eingabe &uuml;bernehmen</button>
       </div>
     </div>
   </div>
 
   <!-- Action buttons -->
   <div class="btn-row" style="justify-content:center">
-    <button class="btn-primary" onclick="doEncrypt()" style="min-width:160px">&#x1f510; Verschlüsseln</button>
-    <button class="btn-primary" onclick="doDecrypt()" style="min-width:160px;background:#2a9d6f;border-color:#2a9d6f">&#x1f513; Entschlüsseln</button>
+    <button class="btn-primary" onclick="doEncrypt()" style="min-width:160px">&#x1f510; Verschl&uuml;sseln</button>
+    <button class="btn-primary" onclick="doDecrypt()" style="min-width:160px;background:#2a9d6f;border-color:#2a9d6f">&#x1f513; Entschl&uuml;sseln</button>
+  </div>
+
+  <!-- ══════════════════════════════════════════════════════════
+       ATTACK PANEL  (only for Einfache Substitution)
+       ══════════════════════════════════════════════════════════ -->
+  <div id="attack-panel">
+    <div class="card">
+      <h3>&#9876; Angriff &mdash; Frequenzanalyse</h3>
+
+      <div class="btn-row" style="margin-bottom:.8rem">
+        <button class="btn-orange" onclick="attackAnalyse()">Analyse starten</button>
+        <button class="btn-orange" onclick="attackAutoTop(3)">Top 3 zuordnen</button>
+        <button class="btn-orange" onclick="attackAutoTop(6)">Top 6 zuordnen</button>
+        <button class="btn-orange" onclick="attackAutoTop(10)">Top 10 zuordnen</button>
+        <button class="btn-orange" onclick="attackAutoAll()">Alle zuordnen</button>
+        <button class="btn-danger" onclick="attackReset()">Zur&uuml;cksetzen</button>
+      </div>
+
+      <div class="info" style="margin-bottom:.8rem">
+        <strong>So funktioniert&rsquo;s:</strong> &bdquo;Analyse starten&ldquo; z&auml;hlt die Buchstabenh&auml;ufigkeit im Eingabetext.
+        Mit &bdquo;Top N zuordnen&ldquo; werden die h&auml;ufigsten N Geheimtext-Buchstaben automatisch den
+        h&auml;ufigsten deutschen Buchstaben zugeordnet. Du kannst jede Zuordnung manuell &uuml;berschreiben.
+        Die Vorschau aktualisiert sich sofort.
+      </div>
+
+      <!-- Frequency chart -->
+      <label>H&auml;ufigkeitsvergleich</label>
+      <div class="freq-container" id="freq-chart"></div>
+      <div class="freq-legend">
+        <span class="leg-cipher">Geheimtext</span>
+        <span class="leg-german">Deutsch (Referenz)</span>
+      </div>
+
+      <!-- Mapping grid -->
+      <label style="margin-top:1rem">Zuordnung: Geheimtext-Buchstabe &rarr; Klartext-Buchstabe</label>
+      <div class="mapping-grid" id="mapping-grid"></div>
+      <div style="font-size:.72rem;color:var(--text-dim);margin-top:.3rem;font-family:var(--mono)">
+        <span style="color:var(--orange)">&#9632;</span> automatisch &nbsp;
+        <span style="color:var(--green)">&#9632;</span> manuell &nbsp;
+        <span style="color:var(--red)">&#9632;</span> Konflikt (doppelt vergeben)
+      </div>
+
+      <!-- Bigram analysis -->
+      <label style="margin-top:1rem">H&auml;ufige Bigramme (2-Buchstaben-Kombinationen)</label>
+      <div class="row" style="gap:.6rem;margin-top:.4rem">
+        <div style="flex:1;min-width:200px">
+          <div style="font-size:.72rem;color:var(--text-dim);margin-bottom:.3rem;text-transform:uppercase;letter-spacing:.04em">Geheimtext</div>
+          <div id="bigram-cipher" class="bigram-list"></div>
+        </div>
+        <div style="flex:1;min-width:200px">
+          <div style="font-size:.72rem;color:var(--text-dim);margin-bottom:.3rem;text-transform:uppercase;letter-spacing:.04em">Deutsch (Referenz)</div>
+          <div id="bigram-german" class="bigram-list"></div>
+        </div>
+      </div>
+
+      <!-- Preview -->
+      <label style="margin-top:1rem">Entschl&uuml;sselungs-Vorschau</label>
+      <div class="attack-preview" id="attack-preview"></div>
+    </div>
   </div>
 
 </div>
+
 
 <script>
 // ════════════════════════════════════════════════════════════════
@@ -352,6 +577,23 @@
 // ════════════════════════════════════════════════════════════════
 let currentMethod = 'substitution';
 const ABC = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+
+// German letter frequencies (%)
+const GERMAN_FREQ = {
+  E:17.40, N:9.78, I:7.55, S:7.27, R:7.00, A:6.51, T:6.15, D:5.08,
+  H:4.76, U:4.35, L:3.44, C:3.06, G:3.01, M:2.53, O:2.51, B:1.89,
+  W:1.89, F:1.66, K:1.21, Z:1.13, P:0.79, V:0.67, J:0.27, Y:0.04,
+  X:0.03, Q:0.02
+};
+// German letters sorted by frequency descending
+const GERMAN_RANK = Object.entries(GERMAN_FREQ).sort((a,b) => b[1]-a[1]).map(e => e[0]);
+
+// Attack mapping state: cipherLetter -> { plain: 'X', auto: true/false }
+const attackMap = {};
+// Cipher frequencies (counts)
+let cipherFreqs = {};
+// Cipher letters sorted by frequency descending
+let cipherRank = [];
 
 // ════════════════════════════════════════════════════════════════
 //  TABS
@@ -364,7 +606,12 @@ document.getElementById('tabs').addEventListener('click', e => {
   currentMethod = tab.dataset.method;
   document.querySelectorAll('.key-section').forEach(s => s.classList.remove('active'));
   document.getElementById('key-' + currentMethod).classList.add('active');
+  // Show/hide attack panel
+  document.getElementById('attack-panel').classList.toggle('visible', currentMethod === 'substitution');
 });
+
+// Show attack panel on load (substitution is default)
+document.getElementById('attack-panel').classList.add('visible');
 
 // ════════════════════════════════════════════════════════════════
 //  FILE IMPORT
@@ -393,8 +640,7 @@ function updateCount() {
 document.getElementById('input').addEventListener('input', updateCount);
 
 function copyOutput() {
-  const out = document.getElementById('output');
-  navigator.clipboard.writeText(out.value);
+  navigator.clipboard.writeText(document.getElementById('output').value);
 }
 
 function swapTexts() {
@@ -444,7 +690,7 @@ subKeyInput.addEventListener('input', renderSubAlpha);
 renderSubAlpha();
 
 function subEncrypt(text, key) {
-  if (key.length !== 26 || new Set(key).size !== 26) return '⚠ Schlüssel muss genau 26 verschiedene Buchstaben enthalten.';
+  if (key.length !== 26 || new Set(key).size !== 26) return '\u26a0 Schl\u00fcssel muss genau 26 verschiedene Buchstaben enthalten.';
   let result = '';
   for (const ch of text) {
     const upper = ch.toUpperCase();
@@ -457,18 +703,20 @@ function subEncrypt(text, key) {
 }
 
 function subDecrypt(text, key) {
-  if (key.length !== 26 || new Set(key).size !== 26) return '⚠ Schlüssel muss genau 26 verschiedene Buchstaben enthalten.';
+  if (key.length !== 26 || new Set(key).size !== 26) return '\u26a0 Schl\u00fcssel muss genau 26 verschiedene Buchstaben enthalten.';
   const reverseKey = Array(26);
   for (let i = 0; i < 26; i++) reverseKey[ABC.indexOf(key[i])] = ABC[i];
   return subEncrypt(text, reverseKey.join(''));
 }
 
 // ════════════════════════════════════════════════════════════════
-//  2) VIGENÈRE (Polyalphabetic Substitution)
+//  2) VIGENERE
 // ════════════════════════════════════════════════════════════════
+const vigKeyInput = document.getElementById('vig-key');
+
 function vigEncrypt(text, key) {
   key = clean(key);
-  if (!key) return '⚠ Bitte ein Schlüsselwort eingeben.';
+  if (!key) return '\u26a0 Bitte ein Schl\u00fcsselwort eingeben.';
   let result = '', ki = 0;
   for (const ch of text) {
     const upper = ch.toUpperCase();
@@ -484,7 +732,7 @@ function vigEncrypt(text, key) {
 
 function vigDecrypt(text, key) {
   key = clean(key);
-  if (!key) return '⚠ Bitte ein Schlüsselwort eingeben.';
+  if (!key) return '\u26a0 Bitte ein Schl\u00fcsselwort eingeben.';
   let result = '', ki = 0;
   for (const ch of text) {
     const upper = ch.toUpperCase();
@@ -512,16 +760,14 @@ function buildPlayfairMatrix(keyword) {
     seen.add(ch);
     matrix.push(ch);
   }
-  return matrix; // length 25
+  return matrix;
 }
 
 function renderPfGrid() {
   const matrix = buildPlayfairMatrix(pfKeyInput.value);
   const grid = document.getElementById('pf-grid');
   grid.innerHTML = '';
-  for (const ch of matrix) {
-    grid.innerHTML += `<div class="pf-cell">${ch}</div>`;
-  }
+  for (const ch of matrix) grid.innerHTML += `<div class="pf-cell">${ch}</div>`;
 }
 
 pfKeyInput.addEventListener('input', renderPfGrid);
@@ -535,7 +781,6 @@ function pfPos(matrix, ch) {
 function playfairEncrypt(text, keyword) {
   const matrix = buildPlayfairMatrix(keyword);
   let prepared = clean(text).replace(/J/g, 'I');
-  // build digraphs
   const digraphs = [];
   let i = 0;
   while (i < prepared.length) {
@@ -544,21 +789,17 @@ function playfairEncrypt(text, keyword) {
     if (a === b) { b = 'X'; i++; } else { i += 2; }
     digraphs.push([a, b]);
   }
-  if (digraphs.length === 0) return '';
-
+  if (!digraphs.length) return '';
   let result = '';
   for (const [a, b] of digraphs) {
     const [ra, ca] = pfPos(matrix, a);
     const [rb, cb] = pfPos(matrix, b);
     if (ra === rb) {
-      result += matrix[ra * 5 + (ca + 1) % 5];
-      result += matrix[rb * 5 + (cb + 1) % 5];
+      result += matrix[ra * 5 + (ca + 1) % 5] + matrix[rb * 5 + (cb + 1) % 5];
     } else if (ca === cb) {
-      result += matrix[((ra + 1) % 5) * 5 + ca];
-      result += matrix[((rb + 1) % 5) * 5 + cb];
+      result += matrix[((ra + 1) % 5) * 5 + ca] + matrix[((rb + 1) % 5) * 5 + cb];
     } else {
-      result += matrix[ra * 5 + cb];
-      result += matrix[rb * 5 + ca];
+      result += matrix[ra * 5 + cb] + matrix[rb * 5 + ca];
     }
   }
   return result.match(/.{1,5}/g).join(' ');
@@ -567,22 +808,18 @@ function playfairEncrypt(text, keyword) {
 function playfairDecrypt(text, keyword) {
   const matrix = buildPlayfairMatrix(keyword);
   const prepared = clean(text);
-  if (prepared.length % 2 !== 0) return '⚠ Geheimtext muss eine gerade Anzahl an Buchstaben haben.';
-
+  if (prepared.length % 2 !== 0) return '\u26a0 Geheimtext muss eine gerade Anzahl an Buchstaben haben.';
   let result = '';
   for (let i = 0; i < prepared.length; i += 2) {
     const a = prepared[i], b = prepared[i + 1];
     const [ra, ca] = pfPos(matrix, a);
     const [rb, cb] = pfPos(matrix, b);
     if (ra === rb) {
-      result += matrix[ra * 5 + (ca + 4) % 5];
-      result += matrix[rb * 5 + (cb + 4) % 5];
+      result += matrix[ra * 5 + (ca + 4) % 5] + matrix[rb * 5 + (cb + 4) % 5];
     } else if (ca === cb) {
-      result += matrix[((ra + 4) % 5) * 5 + ca];
-      result += matrix[((rb + 4) % 5) * 5 + cb];
+      result += matrix[((ra + 4) % 5) * 5 + ca] + matrix[((rb + 4) % 5) * 5 + cb];
     } else {
-      result += matrix[ra * 5 + cb];
-      result += matrix[rb * 5 + ca];
+      result += matrix[ra * 5 + cb] + matrix[rb * 5 + ca];
     }
   }
   return result.match(/.{1,5}/g).join(' ');
@@ -606,32 +843,24 @@ function getColumnOrder(keyword) {
 function renderTransOrder() {
   const order = getColumnOrder(transKeyInput.value);
   const el = document.getElementById('trans-order');
-  if (order.length === 0) { el.textContent = '—'; return; }
+  if (!order.length) { el.textContent = '\u2014'; return; }
   const key = clean(transKeyInput.value);
-  el.textContent = [...key].map((ch, i) => `${ch}→${order[i] + 1}`).join('  ');
+  el.textContent = [...key].map((ch, i) => `${ch}\u2192${order[i] + 1}`).join('  ');
 }
-
 transKeyInput.addEventListener('input', renderTransOrder);
 
 function transEncrypt(text, keyword) {
   const order = getColumnOrder(keyword);
-  if (order.length === 0) return '⚠ Bitte ein Schlüsselwort eingeben.';
+  if (!order.length) return '\u26a0 Bitte ein Schl\u00fcsselwort eingeben.';
   const cols = order.length;
-  // pad with X
   while (text.length % cols !== 0) text += 'X';
   const rows = text.length / cols;
-  // build grid row-wise
   const grid = [];
-  for (let r = 0; r < rows; r++) {
-    grid.push(text.slice(r * cols, (r + 1) * cols).split(''));
-  }
-  // read columns in key order
+  for (let r = 0; r < rows; r++) grid.push(text.slice(r * cols, (r + 1) * cols).split(''));
   let result = '';
   for (let rank = 0; rank < cols; rank++) {
     const col = order.indexOf(rank);
-    for (let r = 0; r < rows; r++) {
-      result += grid[r][col];
-    }
+    for (let r = 0; r < rows; r++) result += grid[r][col];
   }
   return result.match(/.{1,5}/g).join(' ');
 }
@@ -639,25 +868,17 @@ function transEncrypt(text, keyword) {
 function transDecrypt(text, keyword) {
   text = text.replace(/\s/g, '');
   const order = getColumnOrder(keyword);
-  if (order.length === 0) return '⚠ Bitte ein Schlüsselwort eingeben.';
+  if (!order.length) return '\u26a0 Bitte ein Schl\u00fcsselwort eingeben.';
   const cols = order.length;
-  if (text.length % cols !== 0) return '⚠ Textlänge ist nicht durch Schlüssellänge teilbar. Ggf. wurde der Text verändert.';
+  if (text.length % cols !== 0) return '\u26a0 Textl\u00e4nge ist nicht durch Schl\u00fcssell\u00e4nge teilbar.';
   const rows = text.length / cols;
-  // fill columns in key order
   const grid = Array.from({ length: rows }, () => Array(cols).fill(''));
   let pos = 0;
   for (let rank = 0; rank < cols; rank++) {
     const col = order.indexOf(rank);
-    for (let r = 0; r < rows; r++) {
-      grid[r][col] = text[pos++];
-    }
+    for (let r = 0; r < rows; r++) grid[r][col] = text[pos++];
   }
-  // read row-wise
-  let result = '';
-  for (let r = 0; r < rows; r++) {
-    result += grid[r].join('');
-  }
-  return result;
+  return grid.map(r => r.join('')).join('');
 }
 
 // ════════════════════════════════════════════════════════════════
@@ -668,18 +889,10 @@ function doEncrypt() {
   if (!text) return;
   let result;
   switch (currentMethod) {
-    case 'substitution':
-      result = subEncrypt(text, clean(subKeyInput.value));
-      break;
-    case 'vigenere':
-      result = vigEncrypt(text, vigKeyInput.value);
-      break;
-    case 'playfair':
-      result = playfairEncrypt(text, pfKeyInput.value);
-      break;
-    case 'transposition':
-      result = transEncrypt(clean(text), transKeyInput.value);
-      break;
+    case 'substitution': result = subEncrypt(text, clean(subKeyInput.value)); break;
+    case 'vigenere':     result = vigEncrypt(text, vigKeyInput.value); break;
+    case 'playfair':     result = playfairEncrypt(text, pfKeyInput.value); break;
+    case 'transposition':result = transEncrypt(clean(text), transKeyInput.value); break;
   }
   setOutput(result);
 }
@@ -689,24 +902,425 @@ function doDecrypt() {
   if (!text) return;
   let result;
   switch (currentMethod) {
-    case 'substitution':
-      result = subDecrypt(text, clean(subKeyInput.value));
-      break;
-    case 'vigenere':
-      result = vigDecrypt(text, vigKeyInput.value);
-      break;
-    case 'playfair':
-      result = playfairDecrypt(text, pfKeyInput.value);
-      break;
-    case 'transposition':
-      result = transDecrypt(text, transKeyInput.value);
-      break;
+    case 'substitution': result = subDecrypt(text, clean(subKeyInput.value)); break;
+    case 'vigenere':     result = vigDecrypt(text, vigKeyInput.value); break;
+    case 'playfair':     result = playfairDecrypt(text, pfKeyInput.value); break;
+    case 'transposition':result = transDecrypt(text, transKeyInput.value); break;
   }
   setOutput(result);
 }
 
-// alias for vigenère key input
-const vigKeyInput = document.getElementById('vig-key');
+// ════════════════════════════════════════════════════════════════
+//  ATTACK: FREQUENCY ANALYSIS
+// ════════════════════════════════════════════════════════════════
+
+function initMappingGrid() {
+  const grid = document.getElementById('mapping-grid');
+  grid.innerHTML = '';
+  for (let i = 0; i < 26; i++) {
+    const letter = ABC[i];
+    attackMap[letter] = { plain: '', auto: false };
+    const cell = document.createElement('div');
+    cell.className = 'map-cell';
+    cell.innerHTML = `
+      <span class="cipher-letter">${letter}</span>
+      <span class="cipher-freq" id="mfreq-${letter}">—</span>
+      <input type="text" maxlength="1" id="mbox-${letter}" data-cipher="${letter}" spellcheck="false">
+    `;
+    grid.appendChild(cell);
+  }
+  // Listen for user edits
+  grid.addEventListener('input', e => {
+    const inp = e.target;
+    if (!inp.dataset.cipher) return;
+    const cipher = inp.dataset.cipher;
+    const val = inp.value.toUpperCase().replace(/[^A-Z]/g, '');
+    inp.value = val;
+    attackMap[cipher].plain = val;
+    attackMap[cipher].auto = false;
+    highlightMapping();
+    renderAttackPreview();
+  });
+}
+
+function attackAnalyse() {
+  const text = document.getElementById('input').value;
+  const cleaned = clean(text);
+  if (!cleaned.length) return;
+
+  // Count frequencies
+  cipherFreqs = {};
+  for (const ch of ABC) cipherFreqs[ch] = 0;
+  for (const ch of cleaned) cipherFreqs[ch]++;
+
+  // Sort by frequency
+  cipherRank = Object.entries(cipherFreqs)
+    .filter(e => e[1] > 0)
+    .sort((a, b) => b[1] - a[1])
+    .map(e => e[0]);
+
+  renderFreqChart(cleaned.length);
+  updateMappingFreqs(cleaned.length);
+  renderAttackPreview();
+}
+
+function renderFreqChart(total) {
+  const chart = document.getElementById('freq-chart');
+  chart.innerHTML = '';
+  const maxPct = Math.max(
+    ...ABC.split('').map(l => (cipherFreqs[l] || 0) / total * 100),
+    ...Object.values(GERMAN_FREQ)
+  );
+
+  for (const letter of ABC) {
+    const cPct = (cipherFreqs[letter] || 0) / total * 100;
+    const gPct = GERMAN_FREQ[letter];
+    const col = document.createElement('div');
+    col.className = 'freq-col';
+    col.innerHTML = `
+      <div class="freq-bars" style="height:110px;position:relative">
+        <div class="freq-bar cipher" style="height:${maxPct ? cPct/maxPct*100 : 0}%" title="${letter}: ${cPct.toFixed(1)}%"></div>
+        <div class="freq-bar german" style="height:${maxPct ? gPct/maxPct*100 : 0}%" title="${letter}: ${gPct.toFixed(1)}%"></div>
+      </div>
+      <div class="freq-label letter">${letter}</div>
+    `;
+    chart.appendChild(col);
+  }
+}
+
+function updateMappingFreqs(total) {
+  for (const letter of ABC) {
+    const el = document.getElementById('mfreq-' + letter);
+    const count = cipherFreqs[letter] || 0;
+    if (count > 0) {
+      el.textContent = (count / total * 100).toFixed(1) + '%';
+    } else {
+      el.textContent = '—';
+    }
+  }
+}
+
+function attackAutoTop(n) {
+  // Map the top-n cipher letters to the top-n German letters
+  // But don't overwrite user-set (non-auto) mappings
+  const usedPlain = new Set();
+  // Collect user-set plains first
+  for (const letter of ABC) {
+    if (attackMap[letter].plain && !attackMap[letter].auto) {
+      usedPlain.add(attackMap[letter].plain);
+    }
+  }
+  // Clear previous auto mappings
+  for (const letter of ABC) {
+    if (attackMap[letter].auto) {
+      attackMap[letter].plain = '';
+      attackMap[letter].auto = false;
+    }
+  }
+
+  const germanAvailable = GERMAN_RANK.filter(l => !usedPlain.has(l));
+  const cipherToAssign = cipherRank.filter(l => !attackMap[l].plain);
+
+  const limit = Math.min(n, cipherToAssign.length, germanAvailable.length);
+  for (let i = 0; i < limit; i++) {
+    const cLetter = cipherToAssign[i];
+    attackMap[cLetter].plain = germanAvailable[i];
+    attackMap[cLetter].auto = true;
+    document.getElementById('mbox-' + cLetter).value = germanAvailable[i];
+  }
+  highlightMapping();
+  renderAttackPreview();
+}
+
+function attackAutoAll() {
+  attackAutoTop(26);
+}
+
+function attackReset() {
+  for (const letter of ABC) {
+    attackMap[letter] = { plain: '', auto: false };
+    document.getElementById('mbox-' + letter).value = '';
+  }
+  highlightMapping();
+  renderAttackPreview();
+}
+
+function highlightMapping() {
+  // Check for conflicts (same plain letter assigned twice)
+  const plainCount = {};
+  for (const letter of ABC) {
+    const p = attackMap[letter].plain;
+    if (p) plainCount[p] = (plainCount[p] || 0) + 1;
+  }
+
+  for (const letter of ABC) {
+    const inp = document.getElementById('mbox-' + letter);
+    inp.classList.remove('auto-filled', 'user-set', 'conflict');
+    const p = attackMap[letter].plain;
+    if (!p) continue;
+    if (plainCount[p] > 1) {
+      inp.classList.add('conflict');
+    } else if (attackMap[letter].auto) {
+      inp.classList.add('auto-filled');
+    } else {
+      inp.classList.add('user-set');
+    }
+  }
+}
+
+function renderAttackPreview() {
+  const text = document.getElementById('input').value;
+  const preview = document.getElementById('attack-preview');
+  // Build reverse map: cipher -> plain
+  const map = {};
+  for (const letter of ABC) {
+    if (attackMap[letter].plain) map[letter] = attackMap[letter].plain;
+  }
+
+  let html = '';
+  for (const ch of text) {
+    const upper = ch.toUpperCase();
+    if (map[upper]) {
+      const plain = ch === upper ? map[upper] : map[upper].toLowerCase();
+      html += `<span class="solved">${plain}</span>`;
+    } else if (ABC.includes(upper)) {
+      html += `<span class="unsolved">${ch}</span>`;
+    } else {
+      html += ch === '<' ? '&lt;' : ch === '>' ? '&gt;' : ch === '&' ? '&amp;' : ch;
+    }
+  }
+  preview.innerHTML = html;
+}
+
+// ════════════════════════════════════════════════════════════════
+//  ATTACK: BIGRAM ANALYSIS
+// ════════════════════════════════════════════════════════════════
+const GERMAN_BIGRAMS = [
+  ['ER',3.89],['EN',3.83],['CH',2.75],['DE',2.00],['EI',1.88],
+  ['ND',1.82],['TE',1.81],['IN',1.67],['IE',1.64],['GE',1.53],
+  ['ES',1.41],['NE',1.39],['UN',1.37],['ST',1.34],['RE',1.30],
+  ['HE',1.28],['AN',1.24],['BE',1.05],['SE',1.03],['DI',0.98],
+];
+
+function renderBigrams() {
+  const text = clean(document.getElementById('input').value);
+  const counts = {};
+  for (let i = 0; i < text.length - 1; i++) {
+    const bi = text[i] + text[i + 1];
+    counts[bi] = (counts[bi] || 0) + 1;
+  }
+  const sorted = Object.entries(counts).sort((a, b) => b[1] - a[1]).slice(0, 15);
+  const total = text.length - 1 || 1;
+
+  const cDiv = document.getElementById('bigram-cipher');
+  cDiv.innerHTML = sorted.length
+    ? sorted.map(([bi, c]) =>
+        `<div class="bigram-tag"><span class="bg-pair">${bi}</span><span class="bg-count">${(c/total*100).toFixed(1)}%</span></div>`
+      ).join('')
+    : '<span style="color:var(--text-dim);font-size:.8rem">Noch keine Analyse</span>';
+
+  const gDiv = document.getElementById('bigram-german');
+  gDiv.innerHTML = GERMAN_BIGRAMS.map(([bi, pct]) =>
+    `<div class="bigram-tag"><span class="bg-pair">${bi}</span><span class="bg-count">${pct.toFixed(1)}%</span></div>`
+  ).join('');
+}
+
+// Hook bigram rendering into the analyse button
+const _origAnalyse = attackAnalyse;
+attackAnalyse = function() { _origAnalyse(); renderBigrams(); };
+
+// Render German bigrams on load
+document.getElementById('bigram-german').innerHTML = GERMAN_BIGRAMS.map(([bi, pct]) =>
+  `<div class="bigram-tag"><span class="bg-pair">${bi}</span><span class="bg-count">${pct.toFixed(1)}%</span></div>`
+).join('');
+
+// Initialize mapping grid on load
+initMappingGrid();
+
+// ════════════════════════════════════════════════════════════════
+//  QR CODE GENERATOR (self-contained, Version 1-6, Level L)
+// ════════════════════════════════════════════════════════════════
+(function() {
+  const EXP = [], LOG = [];
+  for (let i = 0, x = 1; i < 256; i++) {
+    EXP[i] = x; LOG[x] = i;
+    x <<= 1; if (x >= 256) x ^= 0x11d;
+  }
+  function gfMul(a, b) { return !a || !b ? 0 : EXP[(LOG[a] + LOG[b]) % 255]; }
+
+  function rsGenPoly(n) {
+    let g = [1];
+    for (let i = 0; i < n; i++) {
+      const ng = new Array(g.length + 1).fill(0);
+      for (let j = 0; j < g.length; j++) { ng[j] ^= g[j]; ng[j+1] ^= gfMul(g[j], EXP[i]); }
+      g = ng;
+    }
+    return g;
+  }
+
+  function rsEncode(data, nsym) {
+    const gen = rsGenPoly(nsym);
+    const s = new Array(data.length + nsym).fill(0);
+    for (let i = 0; i < data.length; i++) s[i] = data[i];
+    for (let i = 0; i < data.length; i++) {
+      if (!s[i]) continue;
+      for (let j = 1; j < gen.length; j++) s[i+j] ^= gfMul(gen[j], s[i]);
+    }
+    return s.slice(data.length);
+  }
+
+  // Version params Level L: [dataCW, ecCWperBlock, numBlocks, alignPositions]
+  const VER = [null,
+    {dc:19,ec:7,nb:1,al:[]},{dc:34,ec:10,nb:1,al:[6,18]},{dc:55,ec:15,nb:1,al:[6,22]},
+    {dc:80,ec:20,nb:1,al:[6,26]},{dc:108,ec:26,nb:1,al:[6,30]},{dc:136,ec:18,nb:2,al:[6,34]},
+  ];
+
+  function makeQR(text) {
+    const bytes = new TextEncoder().encode(text);
+    const need = Math.ceil((12 + bytes.length * 8) / 8);
+    let v = 1;
+    while (v <= 6 && VER[v].dc < need) v++;
+    if (v > 6) return null;
+    const {dc, ec, nb, al} = VER[v];
+    const n = 17 + v * 4;
+
+    // Bit stream
+    const bits = [];
+    const push = (val, cnt) => { for (let i = cnt-1; i >= 0; i--) bits.push((val>>i)&1); };
+    push(0b0100, 4);
+    push(bytes.length, 8);
+    for (const b of bytes) push(b, 8);
+    push(0, Math.min(4, dc*8 - bits.length));
+    while (bits.length % 8) bits.push(0);
+    let pad = 0;
+    while (bits.length < dc*8) { push(pad ? 0x11 : 0xEC, 8); pad ^= 1; }
+
+    const dataBytes = [];
+    for (let i = 0; i < bits.length; i += 8) {
+      let b = 0; for (let j = 0; j < 8; j++) b = (b<<1)|bits[i+j];
+      dataBytes.push(b);
+    }
+
+    // Error correction
+    let finalMsg;
+    if (nb === 1) {
+      finalMsg = [...dataBytes, ...rsEncode(dataBytes, ec)];
+    } else {
+      const bsz = Math.floor(dc/nb), extra = dc%nb;
+      const blocks = [], ecBlocks = [];
+      let off = 0;
+      for (let i = 0; i < nb; i++) {
+        const sz = bsz + (i >= nb-extra ? 1 : 0);
+        blocks.push(dataBytes.slice(off, off+sz)); off += sz;
+      }
+      for (const b of blocks) ecBlocks.push(rsEncode(b, ec));
+      finalMsg = [];
+      for (let i = 0; i < bsz+1; i++) for (const b of blocks) if (i < b.length) finalMsg.push(b[i]);
+      for (let i = 0; i < ec; i++) for (const b of ecBlocks) finalMsg.push(b[i]);
+    }
+
+    // Matrix
+    const mod = Array.from({length:n}, () => new Uint8Array(n));
+    const res = Array.from({length:n}, () => new Uint8Array(n));
+    const set = (r,c,val) => { if(r>=0&&r<n&&c>=0&&c<n){mod[r][c]=val?1:0;res[r][c]=1;} };
+
+    function finder(r0,c0) {
+      for (let dr=-1;dr<=7;dr++) for (let dc=-1;dc<=7;dc++) {
+        const r=r0+dr, c=c0+dc;
+        if (r<0||r>=n||c<0||c>=n) continue;
+        const inB=dr>=0&&dr<=6&&dc>=0&&dc<=6;
+        set(r,c, (dr>=2&&dr<=4&&dc>=2&&dc<=4) || (inB&&(dr===0||dr===6||dc===0||dc===6)));
+      }
+    }
+    finder(0,0); finder(0,n-7); finder(n-7,0);
+
+    for (let i=8;i<n-8;i++) { set(6,i,i%2===0); set(i,6,i%2===0); }
+
+    if (al.length >= 2) {
+      for (const ar of al) for (const ac of al) {
+        if (res[ar][ac]) continue;
+        for (let dr=-2;dr<=2;dr++) for (let dc=-2;dc<=2;dc++)
+          set(ar+dr,ac+dc, Math.abs(dr)===2||Math.abs(dc)===2||(!dr&&!dc));
+      }
+    }
+
+    set(n-8, 8, 1);
+    for (let i=0;i<=8;i++){if(!res[8][i])res[8][i]=1;if(!res[i][8])res[i][8]=1;}
+    for (let i=0;i<8;i++){if(!res[8][n-1-i])res[8][n-1-i]=1;if(!res[n-1-i][8])res[n-1-i][8]=1;}
+
+    // Data placement
+    const msgBits = [];
+    for (const b of finalMsg) for (let i=7;i>=0;i--) msgBits.push((b>>i)&1);
+    if (v >= 2) for (let i=0;i<7;i++) msgBits.push(0);
+    let bi = 0, up = true;
+    for (let right=n-1;right>=1;right-=2) {
+      if (right===6) right=5;
+      for (let vert=0;vert<n;vert++) {
+        const row = up ? n-1-vert : vert;
+        for (let j=0;j<2;j++) {
+          const col=right-j;
+          if (col<0||col>=n||res[row][col]) continue;
+          mod[row][col] = bi<msgBits.length ? msgBits[bi++] : 0;
+        }
+      }
+      up = !up;
+    }
+
+    // Masking
+    const maskFn = (m,r,c) => {
+      switch(m){
+        case 0:return(r+c)%2===0;case 1:return r%2===0;case 2:return c%3===0;
+        case 3:return(r+c)%3===0;case 4:return(~~(r/2)+~~(c/3))%2===0;
+        case 5:return(r*c)%2+(r*c)%3===0;case 6:return((r*c)%2+(r*c)%3)%2===0;
+        case 7:return((r+c)%2+(r*c)%3)%2===0;
+      }
+    };
+    const applyMask = m => {
+      const out = mod.map(r=>r.slice());
+      for(let r=0;r<n;r++) for(let c=0;c<n;c++) if(!res[r][c]&&maskFn(m,r,c)) out[r][c]^=1;
+      return out;
+    };
+    const formatBits = mask => {
+      const d=(0b01<<3)|mask; let rem=d<<10;
+      for(let i=4;i>=0;i--) if(rem&(1<<(i+10))) rem^=0b10100110111<<i;
+      return((d<<10)|rem)^0b101010000010010;
+    };
+    const placeFormat = (mx,mask) => {
+      const fmt=formatBits(mask);
+      const p1=[[8,0],[8,1],[8,2],[8,3],[8,4],[8,5],[8,7],[8,8],[7,8],[5,8],[4,8],[3,8],[2,8],[1,8],[0,8]];
+      const p2=[];
+      for(let i=0;i<7;i++) p2.push([n-1-i,8]);
+      for(let i=0;i<8;i++) p2.push([8,n-8+i]);
+      for(let i=0;i<15;i++){const b=(fmt>>i)&1;mx[p1[i][0]][p1[i][1]]=b;mx[p2[i][0]][p2[i][1]]=b;}
+    };
+    const penalty = mx => {
+      let s=0;
+      for(let r=0;r<n;r++){let run=1;for(let c=1;c<n;c++){if(mx[r][c]===mx[r][c-1])run++;else{if(run>=5)s+=run-2;run=1;}}if(run>=5)s+=run-2;}
+      for(let c=0;c<n;c++){let run=1;for(let r=1;r<n;r++){if(mx[r][c]===mx[r-1][c])run++;else{if(run>=5)s+=run-2;run=1;}}if(run>=5)s+=run-2;}
+      for(let r=0;r<n-1;r++) for(let c=0;c<n-1;c++){const v=mx[r][c];if(v===mx[r][c+1]&&v===mx[r+1][c]&&v===mx[r+1][c+1])s+=3;}
+      return s;
+    };
+
+    let bestMask=0, bestScore=Infinity;
+    for(let m=0;m<8;m++){const mx=applyMask(m);placeFormat(mx,m);const s=penalty(mx);if(s<bestScore){bestScore=s;bestMask=m;}}
+    const result=applyMask(bestMask); placeFormat(result,bestMask);
+    return result;
+  }
+
+  // Render QR code
+  const matrix = makeQR('https://github.com/bohdancho');
+  if (matrix) {
+    const canvas = document.getElementById('qr');
+    const cs = 3, q = 4, sz = (matrix.length + q*2) * cs;
+    canvas.width = sz; canvas.height = sz;
+    canvas.style.width = sz + 'px'; canvas.style.height = sz + 'px';
+    const ctx = canvas.getContext('2d');
+    ctx.fillStyle = '#fff'; ctx.fillRect(0,0,sz,sz);
+    ctx.fillStyle = '#1a1d27';
+    for (let r=0;r<matrix.length;r++) for (let c=0;c<matrix.length;c++)
+      if (matrix[r][c]) ctx.fillRect((q+c)*cs,(q+r)*cs,cs,cs);
+  }
+})();
 </script>
 
 </body>
